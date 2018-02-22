@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class ComputeShaderScript : MonoBehaviour
 {
-    [SerializeField]
-    ComputeShader computeShader;
+    [SerializeField] ComputeShader computeShader;
 
     int kernelIndex;
     
@@ -13,7 +12,7 @@ public class ComputeShaderScript : MonoBehaviour
 	{
         kernelIndex = computeShader.FindKernel("Tripple");
         
-	    Debug.Log(RunTripple(new List<float> {1f, 2f, 3f, 4f}.Select(x => new Vector3(x, x, x)))
+	    Debug.Log(RunTripple(new List<float> {1f, 2f, 3f, 4f}.Select(x => new Vector3(x, x+1, x+2)))
 	        .Select(x => x.ToString())
 	        .Aggregate((acc, x) => acc + " " + x));
 	}
@@ -25,11 +24,11 @@ public class ComputeShaderScript : MonoBehaviour
     IEnumerable<Vector3> RunTripple(IEnumerable<Vector3> input)
     {
         var inputArray = input.ToArray();
-        var computeBuffer = new ComputeBuffer(inputArray.Length, 4*3);
+        var computeBuffer = new ComputeBuffer(inputArray.Length, sizeof(float)*3);
         computeBuffer.SetData(inputArray);
         computeShader.SetBuffer(kernelIndex, "dataBuffer", computeBuffer);
 
-        computeShader.Dispatch(kernelIndex, inputArray.Length, 1, 1);
+        computeShader.Dispatch(kernelIndex, 1, 1, 1);
 
         var outputArray = new Vector3[inputArray.Length];
         computeBuffer.GetData(outputArray); //Bad and slow
