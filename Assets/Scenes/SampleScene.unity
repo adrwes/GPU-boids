@@ -228,8 +228,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnRadius: 10
   spawnVelocity: 1
-  material: {fileID: 2100000, guid: adb83b5cf46671f4dabda58a7efc5b0a, type: 2}
   BoidCalculation: {fileID: 7200000, guid: e68e90a9d63587f47bb84feda24f7a27, type: 3}
+  boidMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  boidMaterial: {fileID: 2100000, guid: eb8e4c680e656444dbe7d7994b47502d, type: 2}
 --- !u!1 &1526980365
 GameObject:
   m_ObjectHideFlags: 0
