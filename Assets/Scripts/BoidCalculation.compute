@@ -1,0 +1,21 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel UpdateBoid
+
+struct Boid 
+{
+	float3 position;
+	float3 velocity;
+	float3 acceleration;
+};
+
+RWStructuredBuffer<Boid> boids;
+
+float deltaTime;
+
+[numthreads(32, 1, 1)]
+void UpdateBoid (uint3 id : SV_DispatchThreadID)
+{
+	boids[id.x].acceleration = float3(0.0f, 0.0f, 0.0f);
+	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
+	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
+}

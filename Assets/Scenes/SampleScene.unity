@@ -196,7 +196,7 @@ GameObject:
   - component: {fileID: 811806022}
   - component: {fileID: 811806023}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Boid Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -209,7 +209,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 811806021}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.5924182, y: 2.4922988, z: 0.56276846}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -223,10 +223,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 811806021}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a3ded689c944e040913197b8e0cf8c9, type: 3}
+  m_Script: {fileID: 11500000, guid: 44f8c29f2b53c364684c69719e0ef61f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  computeShader: {fileID: 7200000, guid: ec254a9f886c459419c52754b2266095, type: 3}
+  spawnRadius: 10
+  spawnVelocity: 1
+  material: {fileID: 2100000, guid: adb83b5cf46671f4dabda58a7efc5b0a, type: 2}
+  BoidCalculation: {fileID: 7200000, guid: e68e90a9d63587f47bb84feda24f7a27, type: 3}
 --- !u!1 &1526980365
 GameObject:
   m_ObjectHideFlags: 0
