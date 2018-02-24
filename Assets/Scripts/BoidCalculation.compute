@@ -58,12 +58,23 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 
 	float mass = 1.0f;
 
-	float3 alignmentForce = alignmentForceFactor * (averageVelocity - boids[id.x].velocity) / mass;
-	float3 cohesionForce = cohesionForceFactor * (averagePosition - boids[id.x].position) / mass;
-	separationForce *= separationForceFactor / mass;
-	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter) / mass;
+	float3 alignmentForce = alignmentForceFactor * (averageVelocity - boids[id.x].velocity) ;
+	float3 cohesionForce = cohesionForceFactor * (averagePosition - boids[id.x].position);
+	separationForce *= separationForceFactor;
+	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter);
+	float3 linearDrag = -0.05f * boids[id.x].velocity;
+	float3 speedForce = float3(0.0f, 0.0f, 0.0f);
+	float velocityNorm = length(boids[id.x].velocity);
+	if (velocityNorm > 8) 
+	{
+		speedForce -= 20.0f * (boids[id.x].velocity - 8) * (boids[id.x].velocity / velocityNorm);
+	}
+	else if(velocityNorm < 2)
+	{
+		speedForce += 5.0f * (2 - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm);
+	}
 
-	boids[id.x].acceleration = alignmentForce + cohesionForce + separationForce + boundsForce;
+	boids[id.x].acceleration = (alignmentForce + cohesionForce + separationForce + boundsForce + speedForce + linearDrag) / mass;
 	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
 	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
 }
