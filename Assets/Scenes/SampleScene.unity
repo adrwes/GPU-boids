@@ -305,6 +305,16 @@ Prefab:
       propertyPath: boidMesh
       value: 
       objectReference: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: maxVelocity
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: minVelocity
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 103ef0ddb387fdb409924701f5b91d1d, type: 2}
   m_IsPrefabParent: 0

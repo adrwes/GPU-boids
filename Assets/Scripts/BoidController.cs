@@ -14,6 +14,9 @@ public class BoidController : MonoBehaviour
     [SerializeField] float separationDistance = 2.0f;
     [SerializeField] float spawnRadius;
     [SerializeField] float spawnVelocity;
+    [SerializeField] float minVelocity;
+    [SerializeField] float maxVelocity;
+
     [SerializeField] ComputeShader BoidCalculation;
     [SerializeField] Mesh boidMesh;
     [SerializeField] Material boidMaterial;
@@ -80,6 +83,8 @@ public class BoidController : MonoBehaviour
         BoidCalculation.SetFloat("separationDistance", separationDistance);
         BoidCalculation.SetFloats("simulationCenter", simulationBounds.center.x, simulationBounds.center.y, simulationBounds.center.z);
         BoidCalculation.SetFloat("simulationRadius", simulationBounds.radius);
+        BoidCalculation.SetFloat("maxVelocity", maxVelocity);
+        BoidCalculation.SetFloat("minVelocity", minVelocity);
     }
 	
 	void Update ()

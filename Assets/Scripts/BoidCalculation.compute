@@ -23,8 +23,26 @@ float separationDistance;
 float3 simulationCenter;
 float simulationRadius;
 
+float minVelocity;
+float maxVelocity;
+
+float3 CalculateFlockingForces(uint id);
+float3 CalculateSpeedForces(uint id);
+
 [numthreads(1024, 1, 1)]
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
+{
+	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter);
+	
+	float3 linearDrag = -0.05f * boids[id.x].velocity; //
+	
+	float mass = 1.0f;
+	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + boundsForce + linearDrag) / mass;
+	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
+	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
+}
+
+float3 CalculateFlockingForces(uint id)
 {
 	uint boidsCount;
 	uint stride;
@@ -37,9 +55,9 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 	uint neighbourCount = 0;
 	for (uint i = 0; i < boidsCount; i++)
 	{
-		float neighbourDistance = 3.0f;
- 		float distance = length(boids[i].position - boids[id.x].position);
-		if ( distance <= neighbourDistance)
+		float neighbourDistance = max(alignmentDistance, max(cohesionDistance, separationDistance));
+		float distance = length(boids[i].position - boids[id].position);
+		if (distance <= neighbourDistance)
 		{
 			if (distance < alignmentDistance)
 				averageVelocity += boids[i].velocity;
@@ -47,34 +65,28 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 			if (distance < cohesionDistance)
 				averagePosition += boids[i].position;
 
-			if (distance < separationDistance && id.x != i)
-				separationForce += (separationDistance - distance) * (boids[id.x].position - boids[i].position) / distance;
-			
+			if (distance < separationDistance && id != i)
+				separationForce += (separationDistance - distance) * (boids[id].position - boids[i].position) / distance;
+
 			neighbourCount++;
 		}
 	}
 	averageVelocity /= neighbourCount;
 	averagePosition /= neighbourCount;
 
-	float mass = 1.0f;
-
-	float3 alignmentForce = alignmentForceFactor * (averageVelocity - boids[id.x].velocity) ;
+	float3 alignmentForce = alignmentForceFactor * (averageVelocity - boids[id.x].velocity);
 	float3 cohesionForce = cohesionForceFactor * (averagePosition - boids[id.x].position);
 	separationForce *= separationForceFactor;
-	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter);
-	float3 linearDrag = -0.05f * boids[id.x].velocity;
-	float3 speedForce = float3(0.0f, 0.0f, 0.0f);
-	float velocityNorm = length(boids[id.x].velocity);
-	if (velocityNorm > 8) 
-	{
-		speedForce -= 20.0f * (boids[id.x].velocity - 8) * (boids[id.x].velocity / velocityNorm);
-	}
-	else if(velocityNorm < 2)
-	{
-		speedForce += 5.0f * (2 - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm);
-	}
 
-	boids[id.x].acceleration = (alignmentForce + cohesionForce + separationForce + boundsForce + speedForce + linearDrag) / mass;
-	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
-	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
+	return alignmentForce + cohesionForce + separationForce;
+}
+
+float3 CalculateSpeedForces(uint id) {
+	float velocityNorm = length(boids[id.x].velocity);
+
+	if (velocityNorm > maxVelocity)
+		return -20.0f * (boids[id.x].velocity - maxVelocity) * (boids[id.x].velocity / velocityNorm); //
+	else if (velocityNorm < minVelocity)
+		return 5.0f * (minVelocity - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm); //
+	else return float3(0.0f, 0.0f, 0.0f);
 }
