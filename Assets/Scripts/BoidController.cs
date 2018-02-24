@@ -2,18 +2,27 @@
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(SphereCollider))]
 public class BoidController : MonoBehaviour
 {
+    [SerializeField] float alignmentForceFactor;
+    [SerializeField] float cohesionForceFactor;
+    [SerializeField] float separationForceFactor;
+    [SerializeField] float boundsForceFactor;
+    [SerializeField] float alignmentDistance = 3.0f;
+    [SerializeField] float cohesionDistance = 3.0f;
+    [SerializeField] float separationDistance = 2.0f;
     [SerializeField] float spawnRadius;
     [SerializeField] float spawnVelocity;
     [SerializeField] ComputeShader BoidCalculation;
     [SerializeField] Mesh boidMesh;
     [SerializeField] Material boidMaterial;
 
+    SphereCollider simulationBounds;
     int updateBoidkernelIndex;
     ComputeBuffer boidsBuffer;
     ComputeBuffer argsBuffer;
-
+    
     const int boidsCount = 1024;
     const int boidStride = sizeof(float) * 3 * 3; //size of float members in bytes
     const int threadGroupSize = 1024;
@@ -27,12 +36,30 @@ public class BoidController : MonoBehaviour
     
     void Start ()
     {
+        simulationBounds = GetComponent<SphereCollider>();
+
         updateBoidkernelIndex = BoidCalculation.FindKernel("UpdateBoid");
         
+        InitAndBindBoidBuffer();
+
+        InitAndBindArgsBuffer();
+
+        InitAndBindFloats();
+    }
+
+    void InitAndBindArgsBuffer()
+    {
+        var args = new uint[] { boidMesh.GetIndexCount(0), boidsCount, 0, 0, 0 };
+        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        argsBuffer.SetData(args);
+    }
+
+    void InitAndBindBoidBuffer()
+    {
         var boids = new Boid[boidsCount];
-        for(int i = 0; i < boids.Length; i++)
+        for (int i = 0; i < boids.Length; i++)
         {
-            boids[i].position = transform.position + Random.insideUnitSphere * spawnRadius; //TODO: Add bounds
+            boids[i].position = simulationBounds.center + Random.insideUnitSphere * Mathf.Clamp(spawnRadius, 0, simulationBounds.radius);
             boids[i].velocity = Random.insideUnitSphere * spawnVelocity;
             boids[i].acceleration = Vector3.zero;
         }
@@ -40,10 +67,19 @@ public class BoidController : MonoBehaviour
         boidsBuffer = new ComputeBuffer(boidsCount, boidStride);
         boidsBuffer.SetData(boids);
         BoidCalculation.SetBuffer(updateBoidkernelIndex, "boids", boidsBuffer); //TODO: necessary every frame?
+    }
 
-        var args = new uint[] {(uint) boidMesh.GetIndexCount(0), (uint) boidsCount, 0, 0, 0};
-        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-        argsBuffer.SetData(args);
+    void InitAndBindFloats()
+    {
+        BoidCalculation.SetFloat("alignmentForceFactor", alignmentForceFactor);
+        BoidCalculation.SetFloat("cohesionForceFactor", cohesionForceFactor);
+        BoidCalculation.SetFloat("separationForceFactor", separationForceFactor);
+        BoidCalculation.SetFloat("boundsForceFactor", boundsForceFactor);
+        BoidCalculation.SetFloat("alignmentDistance", alignmentDistance);
+        BoidCalculation.SetFloat("cohesionDistance", cohesionDistance);
+        BoidCalculation.SetFloat("separationDistance", separationDistance);
+        BoidCalculation.SetFloats("simulationCenter", simulationBounds.center.x, simulationBounds.center.y, simulationBounds.center.z);
+        BoidCalculation.SetFloat("simulationRadius", simulationBounds.radius);
     }
 	
 	void Update ()
@@ -56,7 +92,7 @@ public class BoidController : MonoBehaviour
         boidMaterial.SetBuffer("boids", boidsBuffer);
 
         //render
-        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, new Bounds(Vector3.zero, new Vector3(1000, 1000, 1000)), argsBuffer); //TODO: Add bounds
+        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, new Bounds(Vector3.zero, Vector3.one * 1.1f * simulationBounds.radius), argsBuffer);
     }
 
     void OnDestroy()

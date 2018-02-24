@@ -12,6 +12,17 @@ RWStructuredBuffer<Boid> boids;
 
 float deltaTime;
 
+float alignmentForceFactor;
+float cohesionForceFactor;
+float separationForceFactor;
+float boundsForceFactor;
+
+float alignmentDistance;
+float cohesionDistance;
+float separationDistance;
+float3 simulationCenter;
+float simulationRadius;
+
 [numthreads(1024, 1, 1)]
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
 {
@@ -26,21 +37,16 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 	uint neighbourCount = 0;
 	for (uint i = 0; i < boidsCount; i++)
 	{
-		//if (i == id.x)
-		//	continue;
 		float neighbourDistance = 3.0f;
  		float distance = length(boids[i].position - boids[id.x].position);
 		if ( distance <= neighbourDistance)
 		{
-			float alignmentDistance = 3.0f;
 			if (distance < alignmentDistance)
 				averageVelocity += boids[i].velocity;
 
-			float cohesionDistance = 3.0f;
 			if (distance < cohesionDistance)
 				averagePosition += boids[i].position;
 
-			float separationDistance = 2.0f;
 			if (distance < separationDistance && id.x != i)
 				separationForce += (separationDistance - distance) * (boids[id.x].position - boids[i].position) / distance;
 			
@@ -52,19 +58,10 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 
 	float mass = 1.0f;
 
-	float alignmentForceFactor = 1.0f;
 	float3 alignmentForce = alignmentForceFactor * (averageVelocity - boids[id.x].velocity) / mass;
-
-	float cohesionForceFactor = 1.0f;
 	float3 cohesionForce = cohesionForceFactor * (averagePosition - boids[id.x].position) / mass;
-
-	float separationForceFactor = 1.0f;
 	separationForce *= separationForceFactor / mass;
-
-	float3 simulationCenter = float3(0.0f, 0.0f, 0.0f);
-	float3 simulationRadius = 50.0f;
-	float boundsForceFactor = 1.0f;
-	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter)/mass;
+	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter) / mass;
 
 	boids[id.x].acceleration = alignmentForce + cohesionForce + separationForce + boundsForce;
 	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
