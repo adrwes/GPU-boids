@@ -226,8 +226,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44f8c29f2b53c364684c69719e0ef61f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnRadius: 10
-  spawnVelocity: 1
+  spawnRadius: 30
+  spawnVelocity: 2
   BoidCalculation: {fileID: 7200000, guid: e68e90a9d63587f47bb84feda24f7a27, type: 3}
   boidMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   boidMaterial: {fileID: 2100000, guid: eb8e4c680e656444dbe7d7994b47502d, type: 2}

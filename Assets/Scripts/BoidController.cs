@@ -14,9 +14,9 @@ public class BoidController : MonoBehaviour
     ComputeBuffer boidsBuffer;
     ComputeBuffer argsBuffer;
 
-    const int boidsCount = 32;
+    const int boidsCount = 1024;
     const int boidStride = sizeof(float) * 3 * 3; //size of float members in bytes
-    const int threadGroupSize = 32;
+    const int threadGroupSize = 1024;
     
     struct Boid
     {
@@ -56,7 +56,7 @@ public class BoidController : MonoBehaviour
         boidMaterial.SetBuffer("boids", boidsBuffer);
 
         //render
-        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, new Bounds(Vector3.zero, new Vector3(100, 100, 100)), argsBuffer);
+        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, new Bounds(Vector3.zero, new Vector3(1000, 1000, 1000)), argsBuffer); //TODO: Add bounds
     }
 
     void OnDestroy()

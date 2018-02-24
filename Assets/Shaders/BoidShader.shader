@@ -63,3 +63,5 @@ Shader "Instanced/BoidShader" {
 	}
 	FallBack "Diffuse"
 }
+
+//dot(boids[unity_InstanceID].velocity, boids[unity_InstanceID].velocity)
