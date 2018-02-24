@@ -61,7 +61,12 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 	float separationForceFactor = 1.0f;
 	separationForce *= separationForceFactor / mass;
 
-	boids[id.x].acceleration = alignmentForce + cohesionForce + separationForce;
+	float3 simulationCenter = float3(0.0f, 0.0f, 0.0f);
+	float3 simulationRadius = 50.0f;
+	float boundsForceFactor = 1.0f;
+	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter)/mass;
+
+	boids[id.x].acceleration = alignmentForce + cohesionForce + separationForce + boundsForce;
 	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
 	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
 }
