@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-[RequireComponent(typeof(SphereCollider))]
+[RequireComponent(typeof(BoxCollider))]
 public class BoidController : MonoBehaviour
 {
     [SerializeField] int boidsCount = 2048;
@@ -23,7 +23,7 @@ public class BoidController : MonoBehaviour
     [SerializeField] Mesh boidMesh;
     [SerializeField] Material boidMaterial;
 
-    SphereCollider simulationBounds;
+    BoxCollider simulationBounds;
     int updateBoidkernelIndex;
     ComputeBuffer boidsBuffer;
     ComputeBuffer argsBuffer;
@@ -48,7 +48,7 @@ public class BoidController : MonoBehaviour
     
     void Start ()
     {
-        simulationBounds = GetComponent<SphereCollider>();
+        simulationBounds = GetComponent<BoxCollider>();
 
         updateBoidkernelIndex = boidCalculation.FindKernel("UpdateBoid");
         
@@ -66,7 +66,7 @@ public class BoidController : MonoBehaviour
         var boids = new Boid[boidsCount];
         for (int i = 0; i < boids.Length; i++)
         {
-            boids[i].position = simulationBounds.center + Random.insideUnitSphere * Mathf.Clamp(spawnRadius, 0, simulationBounds.radius);
+            boids[i].position = simulationBounds.center + Random.insideUnitSphere * Mathf.Clamp(spawnRadius, 0, simulationBounds.size.x);
             boids[i].velocity = Random.insideUnitSphere * spawnVelocity;
             boids[i].acceleration = Vector3.zero;
         }
@@ -78,7 +78,7 @@ public class BoidController : MonoBehaviour
 
     void InitAndBindForceFields()
     {
-        var forceFields = GameObject.FindGameObjectsWithTag("ForceField").Select(g => new Field { position = g.transform.position, force = g.GetComponent<ForceField>().force }).ToArray();
+        var forceFields = GameObject.FindGameObjectsWithTag("ForceField").Select(g => new Field { position = g.transform.position, force = g.GetComponent<ForceField>().Force }).ToArray();
         forceFieldBuffer = new ComputeBuffer(forceFields.Length, ForceFieldStride);
         forceFieldBuffer.SetData(forceFields);
         boidCalculation.SetBuffer(updateBoidkernelIndex, "forceFields", forceFieldBuffer);
@@ -101,7 +101,7 @@ public class BoidController : MonoBehaviour
         boidCalculation.SetFloat("cohesionDistance", cohesionDistance);
         boidCalculation.SetFloat("separationDistance", separationDistance);
         boidCalculation.SetFloats("simulationCenter", simulationBounds.center.x, simulationBounds.center.y, simulationBounds.center.z);
-        boidCalculation.SetFloat("simulationRadius", simulationBounds.radius);
+        boidCalculation.SetFloat("simulationRadius", simulationBounds.size.x);
         boidCalculation.SetFloat("maxVelocity", maxVelocity);
         boidCalculation.SetFloat("minVelocity", minVelocity);
     }
@@ -116,7 +116,7 @@ public class BoidController : MonoBehaviour
         boidMaterial.SetBuffer("boids", boidsBuffer);
 
         //render
-        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, new Bounds(Vector3.zero, Vector3.one * 1.1f * simulationBounds.radius), argsBuffer);
+        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, new Bounds(Vector3.zero, Vector3.one * 1.1f * simulationBounds.size.x), argsBuffer);
     }
 
     void OnDestroy()

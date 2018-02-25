@@ -31,11 +31,12 @@ float separationDistance;
 float3 simulationCenter;
 float simulationRadius;
 
-float minVelocity; //rename speed
+float minVelocity;
 float maxVelocity;
 
 float3 CalculateFlockingForces(uint id);
 float3 CalculateSpeedForces(uint id);
+float3 GetBoundsForce(uint id);
 float3 GetForceFieldForces(uint id);
 inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid);
 inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
@@ -43,12 +44,10 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
 [numthreads(1024, 1, 1)]
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
 {
-	float3 boundsForce = -boundsForceFactor * max(0, (length(boids[id.x].position - simulationCenter) - simulationRadius)) * (boids[id.x].position - simulationCenter);
-	
 	float3 linearDrag = -0.05f * boids[id.x].velocity; //
 	
 	float mass = 1.0f;
-	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + GetForceFieldForces(id.x) + boundsForce + linearDrag) / mass;
+	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + GetForceFieldForces(id.x) + GetBoundsForce(id.x) + linearDrag) / mass;
 	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
 	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
 }
@@ -106,6 +105,28 @@ float3 CalculateSpeedForces(uint id) {
 	else if (velocityNorm < minVelocity)
 		return 5.0f * (minVelocity - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm); //
 	else return float3(0.0f, 0.0f, 0.0f);
+}
+
+float3 GetBoundsForce(uint id)
+{
+	float3 result = float3(0.0f, 0.0f, 0.0f);
+	float3 friction = 0.0f;
+
+	float3 x = boids[id].position - simulationCenter;
+	float3 minDiff = x + simulationRadius/2;
+	float3 maxDiff = x - simulationRadius/2;
+
+	[unroll(3)]
+	for (uint i = 0; i < 3; i++)
+	{
+		if (minDiff[i] < 0)
+			result[i] = minDiff[i];
+		else if (maxDiff[i] > 0)
+			result[i] = maxDiff[i];
+
+		friction += abs(result[i]);
+	}
+	return -1.0f * (result + 0.1f * friction * boids[id].velocity);
 }
 
 float3 GetForceFieldForces(uint id)

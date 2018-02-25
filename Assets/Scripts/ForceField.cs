@@ -2,5 +2,5 @@
 
 public class ForceField : MonoBehaviour
 {
-    public float force;
+    public float Force;
 }
