@@ -28,11 +28,13 @@ float boundsForceFactor;
 float alignmentDistance;
 float cohesionDistance;
 float separationDistance;
+float boundsDistance;
+
 float3 simulationCenter;
 float3 simulationSize;
 
-float minVelocity;
-float maxVelocity;
+float minSpeed;
+float maxSpeed;
 
 float3 CalculateFlockingForces(uint id);
 float3 CalculateSpeedForces(uint id);
@@ -100,33 +102,30 @@ float3 CalculateFlockingForces(uint id)
 float3 CalculateSpeedForces(uint id) {
 	float velocityNorm = length(boids[id.x].velocity);
 
-	if (velocityNorm > maxVelocity)
-		return -20.0f * (boids[id.x].velocity - maxVelocity) * (boids[id.x].velocity / velocityNorm); //
-	else if (velocityNorm < minVelocity)
-		return 5.0f * (minVelocity - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm); //
+	if (velocityNorm > maxSpeed)
+		return -20.0f * (boids[id.x].velocity - maxSpeed) * (boids[id.x].velocity / velocityNorm); //
+	else if (velocityNorm < minSpeed)
+		return 5.0f * (minSpeed - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm); //
 	else return float3(0.0f, 0.0f, 0.0f);
 }
 
 float3 GetBoundsForce(uint id)
 {
-	float3 result = float3(0.0f, 0.0f, 0.0f);
-	float3 friction = 0.0f;
+	float3 desiredVelocity = boids[id].velocity;
 
 	float3 x = boids[id].position - simulationCenter;
-	float3 minDiff = x + simulationSize /2;
-	float3 maxDiff = x - simulationSize /2;
+	float3 minCorner = x + simulationSize/2;
+	float3 maxCorner = simulationSize/2 - x;
 
 	[unroll(3)]
 	for (uint i = 0; i < 3; i++)
 	{
-		if (minDiff[i] < 0)
-			result[i] = minDiff[i];
-		else if (maxDiff[i] > 0)
-			result[i] = maxDiff[i];
-
-		friction += abs(result[i]);
+		if (minCorner[i] < boundsDistance)
+			desiredVelocity[i] = maxSpeed;
+		else if (maxCorner[i] < boundsDistance)
+			desiredVelocity[i] = -maxSpeed;
 	}
-	return -1.0f * (result + 0.1f * friction * boids[id].velocity);
+	return boundsForceFactor*GetSteeringForce(desiredVelocity, boids[id]);
 }
 
 float3 GetForceFieldForces(uint id)
@@ -153,7 +152,7 @@ inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid)
 
 inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
 {
-	//float3 desiredVelocity = maxVelocity * normalize(desiredPosition - boid.position);
+	//float3 desiredVelocity = maxSpeed * normalize(desiredPosition - boid.position);
 	float3 desiredVelocity = length(boid.velocity) * normalize(desiredPosition - boid.position);
 	return GetSteeringForce(desiredVelocity, boid);
 }

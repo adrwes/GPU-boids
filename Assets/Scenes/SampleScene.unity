@@ -631,7 +631,7 @@ Prefab:
     - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
         type: 2}
       propertyPath: boundsForceFactor
-      value: 8
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
         type: 2}
@@ -657,6 +657,11 @@ Prefab:
         type: 2}
       propertyPath: maxSpeed
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: boundsDistance
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 135927756044669332, guid: 103ef0ddb387fdb409924701f5b91d1d, type: 2}

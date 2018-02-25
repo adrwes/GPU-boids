@@ -14,6 +14,7 @@ public class BoidController : MonoBehaviour
     [SerializeField] float alignmentDistance = 3.0f;
     [SerializeField] float cohesionDistance = 3.0f;
     [SerializeField] float separationDistance = 2.0f;
+    [SerializeField] float boundsDistance = 2.0f;
     [SerializeField] float spawnRadius;
     [SerializeField] float spawnVelocity;
     [SerializeField] float minSpeed;
@@ -99,10 +100,11 @@ public class BoidController : MonoBehaviour
         boidCalculation.SetFloat("alignmentDistance", alignmentDistance);
         boidCalculation.SetFloat("cohesionDistance", cohesionDistance);
         boidCalculation.SetFloat("separationDistance", separationDistance);
+        boidCalculation.SetFloat("boundsDistance", boundsDistance);
         boidCalculation.SetFloats("simulationCenter", simulationBounds.center.x, simulationBounds.center.y, simulationBounds.center.z);
         boidCalculation.SetFloats("simulationSize", simulationBounds.size.x, simulationBounds.size.y, simulationBounds.size.z);
-        boidCalculation.SetFloat("maxVelocity", maxSpeed);
-        boidCalculation.SetFloat("minVelocity", minSpeed);
+        boidCalculation.SetFloat("maxSpeed", maxSpeed);
+        boidCalculation.SetFloat("minSpeed", minSpeed);
     }
 	
 	void Update ()
