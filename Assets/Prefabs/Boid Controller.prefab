@@ -52,6 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44f8c29f2b53c364684c69719e0ef61f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  boidsCount: 16384
   alignmentForceFactor: 1
   cohesionForceFactor: 1
   separationForceFactor: 1
@@ -59,10 +60,12 @@ MonoBehaviour:
   alignmentDistance: 3
   cohesionDistance: 3
   separationDistance: 2
-  spawnRadius: 30
+  spawnRadius: 35
   spawnVelocity: 2
-  BoidCalculation: {fileID: 7200000, guid: e68e90a9d63587f47bb84feda24f7a27, type: 3}
-  boidMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  minVelocity: 2
+  maxVelocity: 8
+  boidCalculation: {fileID: 7200000, guid: e68e90a9d63587f47bb84feda24f7a27, type: 3}
+  boidMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   boidMaterial: {fileID: 2100000, guid: eb8e4c680e656444dbe7d7994b47502d, type: 2}
 --- !u!135 &135927756044669332
 SphereCollider:
@@ -74,5 +77,5 @@ SphereCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 50
+  m_Radius: 75
   m_Center: {x: 0, y: 0, z: 0}

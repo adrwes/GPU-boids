@@ -10,6 +10,14 @@ struct Boid
 
 RWStructuredBuffer<Boid> boids;
 
+struct ForceField
+{
+	float3 position;
+	float force;
+};
+
+RWStructuredBuffer<ForceField> forceFields;
+
 float deltaTime;
 
 float alignmentForceFactor;
@@ -23,11 +31,14 @@ float separationDistance;
 float3 simulationCenter;
 float simulationRadius;
 
-float minVelocity;
+float minVelocity; //rename speed
 float maxVelocity;
 
 float3 CalculateFlockingForces(uint id);
 float3 CalculateSpeedForces(uint id);
+float3 GetForceFieldForces(uint id);
+inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid);
+inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
 
 [numthreads(1024, 1, 1)]
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
@@ -37,7 +48,7 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 	float3 linearDrag = -0.05f * boids[id.x].velocity; //
 	
 	float mass = 1.0f;
-	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + boundsForce + linearDrag) / mass;
+	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + GetForceFieldForces(id.x) + boundsForce + linearDrag) / mass;
 	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
 	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
 }
@@ -51,6 +62,7 @@ float3 CalculateFlockingForces(uint id)
 	float3 averagePosition = float3(0.0f, 0.0f, 0.0f);
 	float3 averageVelocity = float3(0.0f, 0.0f, 0.0f);
 	float3 separationForce = float3(0.0f, 0.0f, 0.0f);
+	float3 averageFlee = float3(0.0f, 0.0f, 0.0f);
 
 	uint neighbourCount = 0;
 	for (uint i = 0; i < boidsCount; i++)
@@ -65,19 +77,24 @@ float3 CalculateFlockingForces(uint id)
 			if (distance < cohesionDistance)
 				averagePosition += boids[i].position;
 
-			if (distance < separationDistance && id != i)
+			if (distance < separationDistance && id != i) {
 				separationForce += (separationDistance - distance) * (boids[id].position - boids[i].position) / distance;
+				averageFlee += (separationDistance - distance) * (boids[id].position - boids[i].position) / distance;
+			}
 
 			neighbourCount++;
 		}
 	}
 	averageVelocity /= neighbourCount;
 	averagePosition /= neighbourCount;
+	averageFlee /= neighbourCount;
 
-	float3 alignmentForce = alignmentForceFactor * (averageVelocity - boids[id.x].velocity);
+	float3 alignmentForce = alignmentForceFactor * GetSteeringForce(averageVelocity, boids[id.x]);
 	float3 cohesionForce = cohesionForceFactor * (averagePosition - boids[id.x].position);
+	//float3 cohesionForce = cohesionForceFactor * GetSeekingForce(averagePosition, boids[id.x]);
 	separationForce *= separationForceFactor;
-
+	//separationForce = separationForceFactor * GetSteeringForce(length(boids[id.x].velocity) * averageFlee, boids[id.x]);
+	
 	return alignmentForce + cohesionForce + separationForce;
 }
 
@@ -90,3 +107,33 @@ float3 CalculateSpeedForces(uint id) {
 		return 5.0f * (minVelocity - boids[id.x].velocity) * (boids[id.x].velocity / velocityNorm); //
 	else return float3(0.0f, 0.0f, 0.0f);
 }
+
+float3 GetForceFieldForces(uint id)
+{
+	uint fieldsCount;
+	uint stride;
+	forceFields.GetDimensions(fieldsCount, stride);
+
+	float3 result = float3(0.0f, 0.0f, 0.0f);
+	for (uint i = 0; i < fieldsCount; i++)
+	{
+		float mass = 1;
+		float distance = length(forceFields[i].position - boids[id].position);
+		if(distance >= 1)
+			result += forceFields[i].force * mass/(distance) * normalize(forceFields[i].position - boids[id].position);
+	}
+	return result;
+}
+
+inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid) 
+{
+	return desiredVelocity - boid.velocity;
+}
+
+inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
+{
+	//float3 desiredVelocity = maxVelocity * normalize(desiredPosition - boid.position);
+	float3 desiredVelocity = length(boid.velocity) * normalize(desiredPosition - boid.position);
+	return GetSteeringForce(desiredVelocity, boid);
+}
+
