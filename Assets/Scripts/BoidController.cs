@@ -16,9 +16,8 @@ public class BoidController : MonoBehaviour
     [SerializeField] float separationDistance = 2.0f;
     [SerializeField] float spawnRadius;
     [SerializeField] float spawnVelocity;
-    [SerializeField] float minVelocity;
-    [SerializeField] float maxVelocity;
-
+    [SerializeField] float minSpeed;
+    [SerializeField] float maxSpeed;
     [SerializeField] ComputeShader boidCalculation;
     [SerializeField] Mesh boidMesh;
     [SerializeField] Material boidMaterial;
@@ -30,7 +29,7 @@ public class BoidController : MonoBehaviour
     ComputeBuffer forceFieldBuffer;
     
     const int BoidStride = sizeof(float) * 3 * 3; //size of float members in bytes
-    const int ForceFieldStride = sizeof(float) * (3 + 1);
+    const int ForceFieldStride = sizeof(float) * (3 + 1); //size of float members in bytes
     const int ThreadGroupSize = 1024;
     
     struct Boid
@@ -66,7 +65,7 @@ public class BoidController : MonoBehaviour
         var boids = new Boid[boidsCount];
         for (int i = 0; i < boids.Length; i++)
         {
-            boids[i].position = simulationBounds.center + Random.insideUnitSphere * Mathf.Clamp(spawnRadius, 0, simulationBounds.size.x);
+            boids[i].position = simulationBounds.center + Random.insideUnitSphere * Mathf.Clamp(spawnRadius, 0, new [] { simulationBounds.size.x, simulationBounds.size.y, simulationBounds.size.z }.Max());
             boids[i].velocity = Random.insideUnitSphere * spawnVelocity;
             boids[i].acceleration = Vector3.zero;
         }
@@ -101,9 +100,9 @@ public class BoidController : MonoBehaviour
         boidCalculation.SetFloat("cohesionDistance", cohesionDistance);
         boidCalculation.SetFloat("separationDistance", separationDistance);
         boidCalculation.SetFloats("simulationCenter", simulationBounds.center.x, simulationBounds.center.y, simulationBounds.center.z);
-        boidCalculation.SetFloat("simulationRadius", simulationBounds.size.x);
-        boidCalculation.SetFloat("maxVelocity", maxVelocity);
-        boidCalculation.SetFloat("minVelocity", minVelocity);
+        boidCalculation.SetFloats("simulationSize", simulationBounds.size.x, simulationBounds.size.y, simulationBounds.size.z);
+        boidCalculation.SetFloat("maxVelocity", maxSpeed);
+        boidCalculation.SetFloat("minVelocity", minSpeed);
     }
 	
 	void Update ()

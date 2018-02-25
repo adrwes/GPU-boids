@@ -29,7 +29,7 @@ float alignmentDistance;
 float cohesionDistance;
 float separationDistance;
 float3 simulationCenter;
-float simulationRadius;
+float3 simulationSize;
 
 float minVelocity;
 float maxVelocity;
@@ -113,8 +113,8 @@ float3 GetBoundsForce(uint id)
 	float3 friction = 0.0f;
 
 	float3 x = boids[id].position - simulationCenter;
-	float3 minDiff = x + simulationRadius/2;
-	float3 maxDiff = x - simulationRadius/2;
+	float3 minDiff = x + simulationSize /2;
+	float3 maxDiff = x - simulationSize /2;
 
 	[unroll(3)]
 	for (uint i = 0; i < 3; i++)

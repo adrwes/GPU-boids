@@ -128,7 +128,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 140, y: 140, z: 140}
+  m_Size: {x: 140, y: 70, z: 140}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &271797862
 GameObject:
@@ -642,6 +642,21 @@ Prefab:
         type: 2}
       propertyPath: spawnRadius
       value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: maxVelocity
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: minSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: maxSpeed
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 135927756044669332, guid: 103ef0ddb387fdb409924701f5b91d1d, type: 2}
