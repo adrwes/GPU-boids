@@ -18,19 +18,21 @@ struct ForceField
 
 RWStructuredBuffer<ForceField> forceFields;
 
-float deltaTime;
-
 RWStructuredBuffer<float3> foods;
+
+float deltaTime;
 
 float alignmentForceFactor;
 float cohesionForceFactor;
 float separationForceFactor;
 float boundsForceFactor;
+float foodForceFactor;
 
 float alignmentDistance;
 float cohesionDistance;
 float separationDistance;
 float boundsDistance;
+float foodDistance;
 
 float3 simulationCenter;
 float3 simulationSize;
@@ -155,7 +157,7 @@ float3 GetFoodForce(uint id)
 	uint stride;
 	foods.GetDimensions(foodsCount, stride);
 
-	float closestDistance = 10.0f; //
+	float closestDistance = foodDistance;
 	float3 closest = float3(0.0f, 0.0f, 0.0f);
 	for (uint i = 0; i < foodsCount; i++)
 	{
@@ -167,8 +169,8 @@ float3 GetFoodForce(uint id)
 		}
 	}
 
-	if(closestDistance < 10.0f) //
-		return 1 * GetSeekingForce(closest, boids[id]); //
+	if(closestDistance < foodDistance)
+		return foodForceFactor * GetSeekingForce(closest, boids[id]);
 	return float3(0.0f, 0.0f, 0.0f);
 }
 

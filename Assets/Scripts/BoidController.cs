@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -10,10 +11,12 @@ public class BoidController : MonoBehaviour
     [SerializeField] float alignmentForceFactor;
     [SerializeField] float cohesionForceFactor;
     [SerializeField] float separationForceFactor;
+    [SerializeField] float foodForceFactor = 1.0f;
     [SerializeField] float boundsForceFactor;
     [SerializeField] float alignmentDistance = 3.0f;
     [SerializeField] float cohesionDistance = 3.0f;
     [SerializeField] float separationDistance = 2.0f;
+    [SerializeField] float foodDistance = 20f;
     [SerializeField] float boundsDistance = 2.0f;
     [SerializeField] float spawnRadius;
     [SerializeField] float spawnVelocity;
@@ -22,7 +25,7 @@ public class BoidController : MonoBehaviour
     [SerializeField] ComputeShader boidCalculation;
     [SerializeField] Mesh boidMesh;
     [SerializeField] Material boidMaterial;
-
+    
     BoxCollider simulationBounds;
     int updateBoidkernelIndex;
     ComputeBuffer boidsBuffer;
@@ -86,7 +89,7 @@ public class BoidController : MonoBehaviour
             foodsBuffer.Release();
 
         var foods = GameObject.FindGameObjectsWithTag("Food").Select(g => g.transform.position).ToArray();
-        foodsBuffer = new ComputeBuffer(foods.Length, FoodStride);
+        foodsBuffer = new ComputeBuffer(new [] {foods.Length, 1}.Max(), FoodStride);
         foodsBuffer.SetData(foods);
         boidCalculation.SetBuffer(updateBoidkernelIndex, "foods", foodsBuffer);
     }
@@ -111,10 +114,12 @@ public class BoidController : MonoBehaviour
         boidCalculation.SetFloat("alignmentForceFactor", alignmentForceFactor);
         boidCalculation.SetFloat("cohesionForceFactor", cohesionForceFactor);
         boidCalculation.SetFloat("separationForceFactor", separationForceFactor);
+        boidCalculation.SetFloat("foodForceFactor", foodForceFactor);
         boidCalculation.SetFloat("boundsForceFactor", boundsForceFactor);
         boidCalculation.SetFloat("alignmentDistance", alignmentDistance);
         boidCalculation.SetFloat("cohesionDistance", cohesionDistance);
         boidCalculation.SetFloat("separationDistance", separationDistance);
+        boidCalculation.SetFloat("foodDistance", foodDistance);
         boidCalculation.SetFloat("boundsDistance", boundsDistance);
         boidCalculation.SetFloats("simulationCenter", simulationBounds.center.ToArray());
         boidCalculation.SetFloats("simulationSize", simulationBounds.size.ToArray());
