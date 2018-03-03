@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88077947a252c4f47a46090b8cc192e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FoodCount: 0
+  FoodCount: 100
   LifeTime: 10
   Food: {fileID: 1052134585657462, guid: c08d348fe12ffde4881dd04af20ce2ed, type: 2}
 --- !u!135 &84368106
@@ -718,6 +718,71 @@ Prefab:
         type: 2}
       propertyPath: boundsDistance
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: BoidCalculation
+      value: 
+      objectReference: {fileID: 7200000, guid: e68e90a9d63587f47bb84feda24f7a27, type: 3}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: BoidMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: eb8e4c680e656444dbe7d7994b47502d, type: 2}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: AlignmentForceFactor
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: CohesionForceFactor
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: SeparationForceFactor
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: BoundsForceFactor
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: BoundsDistance
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: SpawnRadius
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: SpawnVelocity
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: MinSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: MaxSpeed
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: BoidMesh
+      value: 
+      objectReference: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: BoidsCount
+      value: 16384
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 135927756044669332, guid: 103ef0ddb387fdb409924701f5b91d1d, type: 2}

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(SphereCollider))]
@@ -14,28 +15,36 @@ public class FoodController : MonoBehaviour
 	void Start ()
 	{
 	    spawnVolume = GetComponent<SphereCollider>();
-        foods = new List<GameObject>(FoodCount);
+	    foods = SpawnFoods().ToList();
+	}
+
+    IEnumerable<GameObject> SpawnFoods()
+    {
         for (int i = 0; i < FoodCount; i++)
         {
             var go = Instantiate(Food, Random.insideUnitSphere * spawnVolume.radius, Quaternion.identity);
             go.AddComponent<Food>();
             go.GetComponent<Food>().LifeTime = Random.Range(0.0f, LifeTime);
             go.transform.parent = transform;
-            foods.Add(go);
+            yield return go;
         }
     }
-	
+
 	void Update ()
     {
-        foreach (var go in foods)
+        foreach (var food in foods)
         {
-            var food = go.GetComponent<Food>();
-            food.LifeTime -= Time.deltaTime;
-            if (food.LifeTime > 0)
+            food.GetComponent<Food>().LifeTime -= Time.deltaTime;
+            if (food.GetComponent<Food>().LifeTime > 0)
                 continue;
 
-            food.LifeTime = LifeTime;
-            go.transform.position = Random.insideUnitSphere * spawnVolume.radius;
+            RespawnFood(food);
         }
 	}
+
+    void RespawnFood(GameObject food)
+    {
+        food.GetComponent<Food>().LifeTime = LifeTime;
+        food.transform.position = Random.insideUnitSphere * spawnVolume.radius;
+    }
 }
