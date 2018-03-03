@@ -20,6 +20,8 @@ RWStructuredBuffer<ForceField> forceFields;
 
 float deltaTime;
 
+RWStructuredBuffer<float3> foods;
+
 float alignmentForceFactor;
 float cohesionForceFactor;
 float separationForceFactor;
@@ -37,6 +39,7 @@ float minSpeed;
 float maxSpeed;
 
 float3 CalculateFlockingForces(uint id);
+float3 GetFoodForce(uint id);
 float3 CalculateSpeedForces(uint id);
 float3 GetBoundsForce(uint id);
 float3 GetForceFieldForces(uint id);
@@ -49,7 +52,8 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 	float3 linearDrag = -0.05f * boids[id.x].velocity; //
 	
 	float mass = 1.0f;
-	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + GetForceFieldForces(id.x) + GetBoundsForce(id.x) + linearDrag) / mass;
+	boids[id.x].acceleration = CalculateFlockingForces(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + GetBoundsForce(id.x) + linearDrag;
+	//boids[id.x].acceleration = (CalculateFlockingForces(id.x) + CalculateSpeedForces(id.x) + GetForceFieldForces(id.x) + GetBoundsForce(id.x) + linearDrag) / mass;
 	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
 	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
 }
@@ -140,9 +144,32 @@ float3 GetForceFieldForces(uint id)
 		float mass = 1;
 		float distance = length(forceFields[i].position - boids[id].position);
 		if(distance >= 1)
-			result += forceFields[i].force * mass/(distance) * normalize(forceFields[i].position - boids[id].position);
+			result += forceFields[i].force * mass/(pow(distance, 1)) * normalize(forceFields[i].position - boids[id].position); //
 	}
 	return result;
+}
+
+float3 GetFoodForce(uint id)
+{
+	uint foodsCount;
+	uint stride;
+	foods.GetDimensions(foodsCount, stride);
+
+	float closestDistance = 10.0f; //
+	float3 closest = float3(0.0f, 0.0f, 0.0f);
+	for (uint i = 0; i < foodsCount; i++)
+	{
+		float distance = length(foods[i] - boids[id].position);
+		if (distance < closestDistance)
+		{
+			closestDistance = distance;
+			closest = foods[i];
+		}
+	}
+
+	if(closestDistance < 10.0f) //
+		return 1 * GetSeekingForce(closest, boids[id]); //
+	return float3(0.0f, 0.0f, 0.0f);
 }
 
 inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid) 
@@ -152,8 +179,8 @@ inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid)
 
 inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
 {
-	//float3 desiredVelocity = maxSpeed * normalize(desiredPosition - boid.position);
-	float3 desiredVelocity = length(boid.velocity) * normalize(desiredPosition - boid.position);
+	float3 desiredVelocity = maxSpeed * normalize(desiredPosition - boid.position);
+	//float3 desiredVelocity = length(boid.velocity) * normalize(desiredPosition - boid.position);
 	return GetSteeringForce(desiredVelocity, boid);
 }
 

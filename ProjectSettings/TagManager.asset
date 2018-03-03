@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - ForceField
+  - Food
+  - Target
   layers:
   - Default
   - TransparentFX
