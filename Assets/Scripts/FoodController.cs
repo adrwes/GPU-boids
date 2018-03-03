@@ -39,8 +39,3 @@ public class FoodController : MonoBehaviour
         }
 	}
 }
-
-public class Food : MonoBehaviour
-{
-    public float LifeTime;
-}

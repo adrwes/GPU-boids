@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88077947a252c4f47a46090b8cc192e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FoodCount: 100
+  FoodCount: 0
   LifeTime: 10
   Food: {fileID: 1052134585657462, guid: c08d348fe12ffde4881dd04af20ce2ed, type: 2}
 --- !u!135 &84368106
@@ -707,7 +707,7 @@ Prefab:
     - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
         type: 2}
       propertyPath: minSpeed
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
         type: 2}

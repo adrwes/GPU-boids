@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,7 +10,10 @@ public class BoidController : MonoBehaviour
     [SerializeField] float cohesionForceFactor;
     [SerializeField] float separationForceFactor;
     [SerializeField] float foodForceFactor = 1.0f;
+    [SerializeField] float speedForceFactor = 1;
     [SerializeField] float boundsForceFactor;
+    [SerializeField] float dragCoefficient = -0.05f;
+    [SerializeField] float forceFieldFallofExponent = 1;
     [SerializeField] float alignmentDistance = 3.0f;
     [SerializeField] float cohesionDistance = 3.0f;
     [SerializeField] float separationDistance = 2.0f;
@@ -32,10 +33,12 @@ public class BoidController : MonoBehaviour
     ComputeBuffer argsBuffer;
     ComputeBuffer forceFieldBuffer;
     ComputeBuffer foodsBuffer;
-    
-    const int BoidStride = sizeof(float) * 3 * 3; //size of float members in bytes
-    const int ForceFieldStride = sizeof(float) * (3 + 1); //size of float members in bytes
+
+    //size of float members in bytes of buffer elements
+    const int BoidStride = sizeof(float) * 3 * 3; 
+    const int ForceFieldStride = sizeof(float) * (3 + 1);
     const int FoodStride = sizeof(float) * 3;
+
     const int ThreadGroupSize = 1024;
     
     struct Boid
@@ -115,7 +118,10 @@ public class BoidController : MonoBehaviour
         boidCalculation.SetFloat("cohesionForceFactor", cohesionForceFactor);
         boidCalculation.SetFloat("separationForceFactor", separationForceFactor);
         boidCalculation.SetFloat("foodForceFactor", foodForceFactor);
+        boidCalculation.SetFloat("speedForceFactor", speedForceFactor);
         boidCalculation.SetFloat("boundsForceFactor", boundsForceFactor);
+        boidCalculation.SetFloat("dragCoefficient", dragCoefficient);
+        boidCalculation.SetFloat("forceFieldFallofExponent", forceFieldFallofExponent);
         boidCalculation.SetFloat("alignmentDistance", alignmentDistance);
         boidCalculation.SetFloat("cohesionDistance", cohesionDistance);
         boidCalculation.SetFloat("separationDistance", separationDistance);
