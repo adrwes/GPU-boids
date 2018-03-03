@@ -43,11 +43,13 @@ float3 simulationSize;
 float minSpeed;
 float maxSpeed;
 
-float3 CalculateFlockingForces(uint id);
+inline void SetForce(uint id, float3 force);
+inline void TimeStep(uint id);
+float3 GetFlockingForces(uint id);
 float3 GetFoodForce(uint id);
-float3 CalculateSpeedForces(uint id);
-float3 GetForceFieldForces(uint id);
+float3 GetSpeedForces(uint id);
 float3 GetBoundsForce(uint id);
+float3 GetForceFieldForces(uint id);
 inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid);
 inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
 
@@ -55,14 +57,24 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
 {
 	float3 linearDrag = dragCoefficient * boids[id.x].velocity;
-	
-	float mass = 1.0f; //
-	boids[id.x].acceleration = (CalculateFlockingForces(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + CalculateSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag) / mass;
-	boids[id.x].velocity += deltaTime * boids[id.x].acceleration;
-	boids[id.x].position += 0.5f*boids[id.x].acceleration*deltaTime*deltaTime + boids[id.x].velocity*deltaTime;
+	float3 force = GetFlockingForces(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + GetSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag;
+	SetForce(id.x, force);
+	TimeStep(id.x);
 }
 
-float3 CalculateFlockingForces(uint id)
+inline void SetForce(uint id, float3 force)
+{
+	float mass = 1.0f; //
+	boids[id].acceleration = force / mass;
+}
+
+inline void TimeStep(uint id)
+{
+	boids[id].velocity += deltaTime * boids[id].acceleration;
+	boids[id].position += 0.5f*boids[id].acceleration*deltaTime*deltaTime + boids[id].velocity*deltaTime;
+}
+
+float3 GetFlockingForces(uint id)
 {
 	uint boidsCount;
 	uint stride;
@@ -130,21 +142,15 @@ float3 GetFoodForce(uint id)
 	return float3(0.0f, 0.0f, 0.0f);
 }
 
-float3 GetForceFieldForces(uint id)
+float3 GetSpeedForces(uint id)
 {
-	uint fieldsCount;
-	uint stride;
-	forceFields.GetDimensions(fieldsCount, stride);
+	float velocityNorm = length(boids[id.x].velocity);
 
-	float3 result = float3(0.0f, 0.0f, 0.0f);
-	for (uint i = 0; i < fieldsCount; i++)
-	{
-		float mass = 1;
-		float distance = length(forceFields[i].position - boids[id].position);
-		if (distance >= 1)
-			result += forceFields[i].force * mass / (pow(distance, forceFieldFallofExponent)) * normalize(forceFields[i].position - boids[id].position);
-	}
-	return result;
+	if (velocityNorm > maxSpeed)
+		return -20.0f * speedForceFactor * (velocityNorm - maxSpeed) * (boids[id.x].velocity / velocityNorm);
+	else if (velocityNorm < minSpeed)
+		return 5.0f * speedForceFactor * (minSpeed - velocityNorm) * (boids[id.x].velocity / velocityNorm);
+	else return float3(0.0f, 0.0f, 0.0f);
 }
 
 float3 GetBoundsForce(uint id)
@@ -166,15 +172,21 @@ float3 GetBoundsForce(uint id)
 	return boundsForceFactor*GetSteeringForce(desiredVelocity, boids[id]);
 }
 
-float3 CalculateSpeedForces(uint id) 
+float3 GetForceFieldForces(uint id)
 {
-	float velocityNorm = length(boids[id.x].velocity);
+	uint fieldsCount;
+	uint stride;
+	forceFields.GetDimensions(fieldsCount, stride);
 
-	if (velocityNorm > maxSpeed)
-		return -20.0f * speedForceFactor * (velocityNorm - maxSpeed) * (boids[id.x].velocity / velocityNorm);
-	else if (velocityNorm < minSpeed)
-		return 5.0f * speedForceFactor * (minSpeed - velocityNorm) * (boids[id.x].velocity / velocityNorm);
-	else return float3(0.0f, 0.0f, 0.0f);
+	float3 result = float3(0.0f, 0.0f, 0.0f);
+	for (uint i = 0; i < fieldsCount; i++)
+	{
+		float mass = 1;
+		float distance = length(forceFields[i].position - boids[id].position);
+		if (distance >= 1)
+			result += forceFields[i].force * mass / (pow(distance, forceFieldFallofExponent)) * normalize(forceFields[i].position - boids[id].position);
+	}
+	return result;
 }
 
 inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid) 
