@@ -6,6 +6,8 @@ struct Boid
 	float3 position;
 	float3 velocity;
 	float3 acceleration;
+	float mass;
+	float2 padding;
 };
 
 RWStructuredBuffer<Boid> boids;
@@ -64,8 +66,7 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 
 inline void SetForce(uint id, float3 force)
 {
-	float mass = 1.0f; //
-	boids[id].acceleration = force / mass;
+	boids[id].acceleration = force / boids[id].mass;
 }
 
 inline void TimeStep(uint id)

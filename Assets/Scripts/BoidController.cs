@@ -36,7 +36,7 @@ public class BoidController : MonoBehaviour
     ComputeBuffer foodsBuffer;
 
     //stride is size of float members in bytes of buffer elements
-    const int BoidStride = sizeof(float) * 3 * 3; 
+    const int BoidStride = sizeof(float) * 12; 
     const int ForceFieldStride = sizeof(float) * (3 + 1);
     const int FoodStride = sizeof(float) * 3;
     const int ThreadGroupSize = 1024;
@@ -70,7 +70,8 @@ public class BoidController : MonoBehaviour
                 position = simulationBounds.center + Random.insideUnitSphere *
                            Mathf.Clamp(SpawnRadius, 0, simulationBounds.size.ToArray().Max()),
                 velocity = Random.insideUnitSphere * SpawnVelocity,
-                acceleration = Vector3.zero
+                acceleration = Vector3.zero,
+                mass = Random.Range(1f, 2f)
             };
         }
     }
@@ -150,6 +151,8 @@ public class BoidController : MonoBehaviour
         public Vector3 position;
         public Vector3 velocity;
         public Vector3 acceleration;
+        public float mass;
+        Vector2 padding; // For some reason it doesnt work without the padding in the struct(s) (and stride)
     }
 
     struct Field
