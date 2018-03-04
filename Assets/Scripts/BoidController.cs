@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -7,6 +8,7 @@ using Random = UnityEngine.Random;
 public class BoidController : MonoBehaviour
 {
     public int BoidsCount = 2048;
+    public int PredatorCount = 16;
     public float AlignmentForceFactor;
     public float CohesionForceFactor;
     public float SeparationForceFactor;
@@ -27,11 +29,15 @@ public class BoidController : MonoBehaviour
     public ComputeShader BoidCalculation;
     public Mesh BoidMesh;
     public Material BoidMaterial;
+    public Material PredatorMaterial;
     
     BoxCollider simulationBounds;
-    int updateBoidkernelIndex;
+    int updateBoidkernel;
+    int updatePredatorKernel;
     ComputeBuffer boidsBuffer;
-    ComputeBuffer argsBuffer;
+    ComputeBuffer predatorBuffer;
+    ComputeBuffer argsBuffer1;
+    ComputeBuffer argsBuffer2;
     ComputeBuffer forceFieldBuffer;
     ComputeBuffer foodsBuffer;
 
@@ -43,14 +49,20 @@ public class BoidController : MonoBehaviour
         
     void Start ()
     {
+        if(BoidsCount < ThreadGroupSize || PredatorCount < 16)
+            throw new Exception("Number of boids or predators cant be less than the thread group size");
+
         simulationBounds = GetComponent<BoxCollider>();
 
-        updateBoidkernelIndex = BoidCalculation.FindKernel("UpdateBoid");
+        updateBoidkernel = BoidCalculation.FindKernel("UpdateBoid");
+        updatePredatorKernel = BoidCalculation.FindKernel("UpdatePredator");
         
         InitAndBindBoidBuffer();
+        InitAndBindPredatorBuffer();
         InitAndBindFoodsBuffer();
         InitAndBindForceFieldsBuffer();
-        InitAndBindArgsBuffer();
+        InitArgsBuffer1();
+        InitArgsBuffer2();
         InitAndBindFloats();
     }
     
@@ -58,7 +70,16 @@ public class BoidController : MonoBehaviour
     {
         boidsBuffer = new ComputeBuffer(BoidsCount, BoidStride);
         boidsBuffer.SetData(GetRandomBoids(BoidsCount).ToArray());
-        BoidCalculation.SetBuffer(updateBoidkernelIndex, "boids", boidsBuffer);
+        BoidCalculation.SetBuffer(updateBoidkernel, "boids", boidsBuffer);
+        BoidCalculation.SetBuffer(updatePredatorKernel, "boids", boidsBuffer);
+    }
+
+    void InitAndBindPredatorBuffer()
+    {
+        predatorBuffer = new ComputeBuffer(PredatorCount, BoidStride);
+        predatorBuffer.SetData(GetRandomBoids(PredatorCount).ToArray());
+        BoidCalculation.SetBuffer(updateBoidkernel, "predators", predatorBuffer);
+        BoidCalculation.SetBuffer(updatePredatorKernel, "predators", predatorBuffer);
     }
 
     IEnumerable<Boid> GetRandomBoids(int count)
@@ -85,7 +106,7 @@ public class BoidController : MonoBehaviour
         var foods = GameObject.FindGameObjectsWithTag("Food").Select(g => g.transform.position).ToArray();
         foodsBuffer = new ComputeBuffer(new [] {foods.Length, 1}.Max(), FoodStride);
         foodsBuffer.SetData(foods);
-        BoidCalculation.SetBuffer(updateBoidkernelIndex, "foods", foodsBuffer);
+        BoidCalculation.SetBuffer(updateBoidkernel, "foods", foodsBuffer);
     }
 
     void InitAndBindForceFieldsBuffer()
@@ -93,14 +114,22 @@ public class BoidController : MonoBehaviour
         var forceFields = GameObject.FindGameObjectsWithTag("ForceField").Select(g => new Field { position = g.transform.position, force = g.GetComponent<ForceField>().Force }).ToArray();
         forceFieldBuffer = new ComputeBuffer(forceFields.Length, ForceFieldStride);
         forceFieldBuffer.SetData(forceFields);
-        BoidCalculation.SetBuffer(updateBoidkernelIndex, "forceFields", forceFieldBuffer);
+        BoidCalculation.SetBuffer(updateBoidkernel, "forceFields", forceFieldBuffer);
+        BoidCalculation.SetBuffer(updatePredatorKernel, "forceFields", forceFieldBuffer);
     }
 
-    void InitAndBindArgsBuffer()
+    void InitArgsBuffer1()
     {
         var args = new uint[] { BoidMesh.GetIndexCount(0), (uint)BoidsCount, 0, 0, 0 };
-        argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-        argsBuffer.SetData(args);
+        argsBuffer1 = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        argsBuffer1.SetData(args);
+    }
+
+    void InitArgsBuffer2()
+    {
+        var args = new uint[] { BoidMesh.GetIndexCount(0), (uint)PredatorCount, 0, 0, 0 };
+        argsBuffer2 = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        argsBuffer2.SetData(args);
     }
 
     void InitAndBindFloats()
@@ -131,20 +160,33 @@ public class BoidController : MonoBehaviour
         InitAndBindFoodsBuffer();
 
         int threadGroupsCount = Mathf.CeilToInt((float) BoidsCount / ThreadGroupSize);
-        BoidCalculation.Dispatch(updateBoidkernelIndex, threadGroupsCount, 1, 1);
+        BoidCalculation.Dispatch(updateBoidkernel, threadGroupsCount, 1, 1);
         
         BoidMaterial.SetBuffer("boids", boidsBuffer);
 
+        var bounds = new Bounds(Vector3.zero, simulationBounds.size * 1.1f); //TODO: change, obviosly wrong
+
         //render
-        Graphics.DrawMeshInstancedIndirect(BoidMesh, 0, BoidMaterial, new Bounds(Vector3.zero, Vector3.one * 1.1f * simulationBounds.size.x), argsBuffer);
+        Graphics.DrawMeshInstancedIndirect(BoidMesh, 0, BoidMaterial, bounds, argsBuffer1);
+
+        
+        threadGroupsCount = Mathf.CeilToInt((float) PredatorCount / 16);
+        BoidCalculation.Dispatch(updatePredatorKernel, threadGroupsCount, 1, 1);
+
+        PredatorMaterial.SetBuffer("boids", predatorBuffer);
+        
+        //render
+        Graphics.DrawMeshInstancedIndirect(BoidMesh, 0, PredatorMaterial, bounds, argsBuffer2);
     }
 
     void OnDestroy()
     {
         boidsBuffer.Release();
+        predatorBuffer.Release();
         foodsBuffer.Release();
         forceFieldBuffer.Release();
-        argsBuffer.Release();
+        argsBuffer1.Release();
+        argsBuffer2.Release();
     }
 
     struct Boid
@@ -154,7 +196,7 @@ public class BoidController : MonoBehaviour
         public Vector3 acceleration;
         public float mass;
         public uint type;
-        float padding; // For some reason it doesnt work without the padding in the struct(s) (and stride)
+        float padding; // For some reason it doesnt work without the padding in the struct(s) (and stride) TODO: try again
     }
 
     struct Field

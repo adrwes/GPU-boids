@@ -130,62 +130,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 200, y: 200, z: 200}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &84368103
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 84368104}
-  - component: {fileID: 84368105}
-  - component: {fileID: 84368106}
-  m_Layer: 0
-  m_Name: Food Controller
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &84368104
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 84368103}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &84368105
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 84368103}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88077947a252c4f47a46090b8cc192e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  FoodCount: 100
-  LifeTime: 10
-  Food: {fileID: 1052134585657462, guid: c08d348fe12ffde4881dd04af20ce2ed, type: 2}
---- !u!135 &84368106
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 84368103}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 100
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &271797862
 GameObject:
   m_ObjectHideFlags: 0
@@ -503,6 +447,48 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1247246354
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4396324502606804, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+      propertyPath: m_RootOrder
+      value: 5
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: c2f496c4ffb1f3f4f8e2c2a53c547f4e, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1 &1526980365
 GameObject:
   m_ObjectHideFlags: 0
@@ -783,6 +769,16 @@ Prefab:
         type: 2}
       propertyPath: BoidsCount
       value: 16384
+      objectReference: {fileID: 0}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: PredatorMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 26b092520547af44197c73e1929c79a6, type: 2}
+    - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
+        type: 2}
+      propertyPath: PredatorCount
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 135927756044669332, guid: 103ef0ddb387fdb409924701f5b91d1d, type: 2}
