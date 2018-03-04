@@ -19,7 +19,7 @@ Shader "Instanced/BoidShader" {
 		#pragma instancing_options procedural:setup
 
 		// Use shader model 3.0 target, to get nicer looking lighting
-		#pragma target 3.0 //
+		#pragma target 3.0 
 
 		sampler2D _MainTex;
 
@@ -59,7 +59,8 @@ Shader "Instanced/BoidShader" {
 		half3 _Emission;
 		half _EmissionStrength;
 
-		void surf (Input IN, inout SurfaceOutputStandard o) {
+		void surf (Input IN, inout SurfaceOutputStandard o) 
+		{
 			fixed4 c = tex2D (_MainTex, IN.uv_MainTex);
 			o.Albedo = c.rgb;
 			o.Metallic = _Metallic;

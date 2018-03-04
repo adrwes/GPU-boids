@@ -164,7 +164,7 @@ public class BoidController : MonoBehaviour
         
         BoidMaterial.SetBuffer("boids", boidsBuffer);
 
-        var bounds = new Bounds{center = transform.position, size = simulationBounds.size * 1.1f }; //TODO: change, obviosly wrong
+        var bounds = new Bounds{center = transform.position, size = simulationBounds.size * 1.1f };
 
         //render
         Graphics.DrawMeshInstancedIndirect(BoidMesh, 0, BoidMaterial, bounds, argsBuffer1);
