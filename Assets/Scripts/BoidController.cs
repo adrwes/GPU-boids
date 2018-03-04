@@ -9,17 +9,21 @@ public class BoidController : MonoBehaviour
 {
     public int BoidsCount = 2048;
     public int PredatorCount = 16;
+
     public float AlignmentForceFactor;
     public float CohesionForceFactor;
     public float SeparationForceFactor;
+    public float FleeForceFactor = 3.0f;
     public float FoodForceFactor = 1.0f;
     public float SpeedForceFactor = 1;
     public float BoundsForceFactor;
     public float DragCoefficient = -0.05f;
     public float ForceFieldFallofExponent = 1;
+
     public float AlignmentDistance = 3.0f;
     public float CohesionDistance = 3.0f;
     public float SeparationDistance = 2.0f;
+    public float FleeDistance = 20.0f;
     public float FoodDistance = 20f;
     public float BoundsDistance = 2.0f;
     public float SpawnRadius;
@@ -137,18 +141,23 @@ public class BoidController : MonoBehaviour
         BoidCalculation.SetFloat("alignmentForceFactor", AlignmentForceFactor);
         BoidCalculation.SetFloat("cohesionForceFactor", CohesionForceFactor);
         BoidCalculation.SetFloat("separationForceFactor", SeparationForceFactor);
+        BoidCalculation.SetFloat("fleeForceFactor", FleeForceFactor);
         BoidCalculation.SetFloat("foodForceFactor", FoodForceFactor);
         BoidCalculation.SetFloat("speedForceFactor", SpeedForceFactor);
         BoidCalculation.SetFloat("boundsForceFactor", BoundsForceFactor);
         BoidCalculation.SetFloat("dragCoefficient", DragCoefficient);
         BoidCalculation.SetFloat("forceFieldFallofExponent", ForceFieldFallofExponent);
+
         BoidCalculation.SetFloat("alignmentDistance", AlignmentDistance);
         BoidCalculation.SetFloat("cohesionDistance", CohesionDistance);
         BoidCalculation.SetFloat("separationDistance", SeparationDistance);
+        BoidCalculation.SetFloat("fleeDistance", FleeDistance);
         BoidCalculation.SetFloat("foodDistance", FoodDistance);
         BoidCalculation.SetFloat("boundsDistance", BoundsDistance);
+
         BoidCalculation.SetFloats("simulationCenter", simulationBounds.center.ToArray());
         BoidCalculation.SetFloats("simulationSize", simulationBounds.size.ToArray());
+
         BoidCalculation.SetFloat("maxSpeed", MaxSpeed);
         BoidCalculation.SetFloat("minSpeed", MinSpeed);
     }

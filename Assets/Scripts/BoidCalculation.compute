@@ -31,6 +31,7 @@ float deltaTime;
 float alignmentForceFactor;
 float cohesionForceFactor;
 float separationForceFactor;
+float fleeForceFactor;
 float foodForceFactor;
 float speedForceFactor;
 float boundsForceFactor;
@@ -40,8 +41,9 @@ float forceFieldFallofExponent;
 float alignmentDistance;
 float cohesionDistance;
 float separationDistance;
-float boundsDistance;
+float fleeDistance;
 float foodDistance;
+float boundsDistance;
 
 float3 simulationCenter;
 float3 simulationSize;
@@ -141,20 +143,24 @@ float3 GetFleeForce(uint id)
 	uint stride;
 	predators.GetDimensions(predatorsCount, stride);
 
-	float closestDistance = 20.0f; //
-	float3 closest = float3(0.0f, 0.0f, 0.0f);
+	uint nearbyPredatorsCount = 0;
+	float3 averagePosition = float3(0.0f, 0.0f, 0.0f);
 	for (uint i = 0; i < predatorsCount; i++)
 	{
 		float distance = length(boids[id].position - predators[i].position);
-		if (distance < closestDistance)
+		if (distance < fleeDistance)
 		{
-			closestDistance = distance;
-			closest = predators[i].position;
+			averagePosition += predators[i].position;
+			nearbyPredatorsCount++;
 		}
 	}
 
-	if (closestDistance < 20.0f) //
-		return 3 * GetFleeingForce(closest, boids[id]); //
+	if (nearbyPredatorsCount > 0) 
+	{
+		averagePosition /= nearbyPredatorsCount;
+		return fleeForceFactor * GetFleeingForce(averagePosition, boids[id]); //
+	}
+		
 	return float3(0.0f, 0.0f, 0.0f);
 }
 
