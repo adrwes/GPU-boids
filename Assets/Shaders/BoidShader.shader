@@ -3,8 +3,10 @@
 Shader "Instanced/BoidShader" {
 	Properties {
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
+		_Metallic("Metallic", Range(0,1)) = 0.0
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
-		_Metallic ("Metallic", Range(0,1)) = 0.0
+		_Emission("Emission", Color) = (0.0,0.0,0.0,0.0)
+		_EmissionStrength("EmissionStrength", Range(0, 100)) = 0
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque" }
@@ -54,12 +56,15 @@ Shader "Instanced/BoidShader" {
 
 		half _Glossiness;
 		half _Metallic;
+		half3 _Emission;
+		half _EmissionStrength;
 
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			fixed4 c = tex2D (_MainTex, IN.uv_MainTex);
 			o.Albedo = c.rgb;
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
+			o.Emission = _Emission.rgb * _EmissionStrength;
 			o.Alpha = c.a;
 		}
 		ENDCG
