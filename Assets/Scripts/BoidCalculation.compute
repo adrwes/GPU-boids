@@ -58,13 +58,13 @@ inline void TimeStep(inout Boid boid);
 float3 GetFlockingForces(uint id);
 float3 GetFleeForce(uint id);
 float3 GetPursuitForce(uint id);
-inline float3 GetSumNearbyPositions(RWStructuredBuffer<Boid> boids, float3 position, float nearbyDistance, out uint nearbyCount);
 float3 GetFoodForce(uint id);
 float3 GetSpeedForces(Boid boid);
 float3 GetBoundsForce(Boid boid);
 float3 GetForceFieldForces(Boid boid);
 inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid);
 inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
+inline float3 GetPursuingForce(float3 target, float3 tagetVelocity, Boid boid);
 inline float3 GetFleeingForce(float3 notDesiredPosition, Boid boid);
 
 [numthreads(1024, 1, 1)]
@@ -143,51 +143,58 @@ float3 GetFlockingForces(uint id)
 
 float3 GetFleeForce(uint id)
 {
-	uint nearbyPredatorsCount;
-	float3 averagePosition = GetSumNearbyPositions(predators, boids[id].position, fleeDistance, nearbyPredatorsCount);
+	uint predatorsCount;
+	uint stride;
+	predators.GetDimensions(predatorsCount, stride);
+
+	uint nearbyPredatorsCount = 0;
+	float3 averagePosition = float3(0.0f, 0.0f, 0.0f);
+	for (uint i = 0; i < predatorsCount; i++)
+	{
+		float distance = length(boids[id].position - predators[i].position);
+		if (distance < fleeDistance)
+		{
+			averagePosition += predators[i].position;
+			nearbyPredatorsCount++;
+		}
+	}
+
 	if (nearbyPredatorsCount > 0) 
 	{
 		averagePosition /= nearbyPredatorsCount;
-		return fleeForceFactor * GetFleeingForce(averagePosition, boids[id]);
+		return fleeForceFactor * GetFleeingForce(averagePosition, boids[id]); //
 	}
-		
 	return float3(0.0f, 0.0f, 0.0f);
 }
 
 float3 GetPursuitForce(uint id)
 {
-	uint nearbyPreyCount;
-	float3 averagePosition = GetSumNearbyPositions(boids, predators[id].position, pursuitDistance, nearbyPreyCount);
-	if (nearbyPreyCount > 0)
-	{
-		averagePosition /= nearbyPreyCount;
-		return pursuitForceFactor * GetSeekingForce(averagePosition, predators[id]);
-	}
-
-	return float3(0.0f, 0.0f, 0.0f);
-}
-
-inline float3 GetSumNearbyPositions(RWStructuredBuffer<Boid> boids, float3 position, float nearbyDistance, out uint nearbyCount)
-{
 	uint boidsCount;
 	uint stride;
 	boids.GetDimensions(boidsCount, stride);
 
-	uint nearbyCounter = 0;
-	float3 positionSum = float3(0.0f, 0.0f, 0.0f);
+	uint nearbyPreyCount = 0;
+	float3 averagePosition = float3(0.0f, 0.0f, 0.0f);
+	float3 averageVelocity = float3(0.0f, 0.0f, 0.0f);
 	for (uint i = 0; i < boidsCount; i++)
 	{
-		float distance = length(boids[i].position - position);
-		if (distance < nearbyDistance)
+		float distance = length(boids[i].position - predators[id].position);
+		if (distance < pursuitDistance)
 		{
-			positionSum += boids[i].position;
-			nearbyCounter++;
+			averagePosition += boids[i].position;
+			averageVelocity += boids[i].velocity;
+			nearbyPreyCount++;
 		}
 	}
-	nearbyCount = nearbyCounter;
-	return positionSum;
+	
+	if (nearbyPreyCount > 0)
+	{
+		averagePosition /= nearbyPreyCount;
+		averageVelocity /= nearbyPreyCount;
+		return pursuitForceFactor * GetPursuingForce(averagePosition, averageVelocity , predators[id]);
+	}
+	return float3(0.0f, 0.0f, 0.0f);
 }
-
 
 float3 GetFoodForce(uint id)
 {
@@ -270,7 +277,13 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
 	return GetSteeringForce(desiredVelocity, boid);
 }
 
+inline float3 GetPursuingForce(float3 target, float3 tagetVelocity, Boid boid)
+{
+	return GetSeekingForce(target + 1*tagetVelocity, boid);
+}
+
 inline float3 GetFleeingForce(float3 notDesiredPosition, Boid boid)
 {
 	return -GetSeekingForce(notDesiredPosition, boid);
 }
+
