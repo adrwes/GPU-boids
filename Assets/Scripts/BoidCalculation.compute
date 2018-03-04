@@ -7,7 +7,8 @@ struct Boid
 	float3 velocity;
 	float3 acceleration;
 	float mass;
-	float2 padding;
+	uint type;
+	float padding;
 };
 
 RWStructuredBuffer<Boid> boids;
@@ -59,7 +60,16 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
 {
 	float3 linearDrag = dragCoefficient * boids[id.x].velocity;
-	float3 force = GetFlockingForces(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + GetSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag;
+	float3 force;
+	if (boids[id.x].type == 1) 
+	{
+		force = GetFlockingForces(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + GetSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag;
+	}
+	else 
+	{
+		force = GetForceFieldForces(id.x) + GetSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag;
+	}
+	
 	SetForce(id.x, force);
 	TimeStep(id.x);
 }
@@ -89,6 +99,9 @@ float3 GetFlockingForces(uint id)
 	uint neighbourCount = 0;
 	for (uint i = 0; i < boidsCount; i++)
 	{
+		if (boids[i].type != boids[id].type)
+			continue;
+
 		float neighbourDistance = max(alignmentDistance, max(cohesionDistance, separationDistance));
 		float distance = length(boids[i].position - boids[id].position);
 		if (distance <= neighbourDistance)

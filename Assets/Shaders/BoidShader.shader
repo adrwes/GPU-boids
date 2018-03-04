@@ -30,6 +30,9 @@ Shader "Instanced/BoidShader" {
 			float3 position;
 			float3 velocity;
 			float3 acceleration;
+			float mass;
+			uint type;
+			float padding;
 		};
 
 	#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -39,9 +42,19 @@ Shader "Instanced/BoidShader" {
 		void setup()
 		{
 		#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-			unity_ObjectToWorld._11_21_31_41 = float4(0.3f, 0, 0, 0);
-			unity_ObjectToWorld._12_22_32_42 = float4(0, 0.3f, 0, 0);
-			unity_ObjectToWorld._13_23_33_43 = float4(0, 0, 0.3f, 0);
+			if (boids[unity_InstanceID].type == 1)
+			{
+				unity_ObjectToWorld._11_21_31_41 = float4(0.3f, 0, 0, 0);
+				unity_ObjectToWorld._12_22_32_42 = float4(0, 0.3f, 0, 0);
+				unity_ObjectToWorld._13_23_33_43 = float4(0, 0, 0.3f, 0);
+			}
+			else
+			{
+				unity_ObjectToWorld._11_21_31_41 = float4(3.0f, 0, 0, 0);
+				unity_ObjectToWorld._12_22_32_42 = float4(0, 3.0f, 0, 0);
+				unity_ObjectToWorld._13_23_33_43 = float4(0, 0, 3.0f, 0);
+			}
+
 			unity_ObjectToWorld._14_24_34_44 = float4(boids[unity_InstanceID].position, 1);
 			unity_WorldToObject = unity_ObjectToWorld;
 			unity_WorldToObject._14_24_34 *= -1;

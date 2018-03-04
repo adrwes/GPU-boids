@@ -71,7 +71,8 @@ public class BoidController : MonoBehaviour
                            Mathf.Clamp(SpawnRadius, 0, simulationBounds.size.ToArray().Max()),
                 velocity = Random.insideUnitSphere * SpawnVelocity,
                 acceleration = Vector3.zero,
-                mass = Random.Range(1f, 2f)
+                mass = Random.Range(1f, 2f),
+                type = i < 10u ? 0u : 1u
             };
         }
     }
@@ -152,7 +153,8 @@ public class BoidController : MonoBehaviour
         public Vector3 velocity;
         public Vector3 acceleration;
         public float mass;
-        Vector2 padding; // For some reason it doesnt work without the padding in the struct(s) (and stride)
+        public uint type;
+        float padding; // For some reason it doesnt work without the padding in the struct(s) (and stride)
     }
 
     struct Field
