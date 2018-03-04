@@ -32,6 +32,7 @@ float alignmentForceFactor;
 float cohesionForceFactor;
 float separationForceFactor;
 float fleeForceFactor;
+float pursuitForceFactor;
 float foodForceFactor;
 float speedForceFactor;
 float boundsForceFactor;
@@ -42,6 +43,7 @@ float alignmentDistance;
 float cohesionDistance;
 float separationDistance;
 float fleeDistance;
+float pursuitDistance;
 float foodDistance;
 float boundsDistance;
 
@@ -55,6 +57,7 @@ inline void SetForce(inout Boid boid, float3 force);
 inline void TimeStep(inout Boid boid);
 float3 GetFlockingForces(uint id);
 float3 GetFleeForce(uint id);
+float3 GetPursuitForce(uint id);
 inline float3 GetSumNearbyPositions(RWStructuredBuffer<Boid> boids, float3 position, float nearbyDistance, out uint nearbyCount);
 float3 GetFoodForce(uint id);
 float3 GetSpeedForces(Boid boid);
@@ -77,7 +80,7 @@ void UpdateBoid (uint3 id : SV_DispatchThreadID)
 void UpdatePredator(uint3 id : SV_DispatchThreadID)
 {
 	float3 linearDrag = dragCoefficient * predators[id.x].velocity;
-	float3 force = GetForceFieldForces(predators[id.x]) + GetSpeedForces(predators[id.x]) + GetBoundsForce(predators[id.x]) + linearDrag;
+	float3 force = GetPursuitForce(id.x) + GetForceFieldForces(predators[id.x]) + GetSpeedForces(predators[id.x]) + GetBoundsForce(predators[id.x]) + linearDrag;
 	SetForce(predators[id.x], force);
 	TimeStep(predators[id.x]);
 }
@@ -151,6 +154,19 @@ float3 GetFleeForce(uint id)
 	return float3(0.0f, 0.0f, 0.0f);
 }
 
+float3 GetPursuitForce(uint id)
+{
+	uint nearbyPreyCount;
+	float3 averagePosition = GetSumNearbyPositions(boids, predators[id].position, pursuitDistance, nearbyPreyCount);
+	if (nearbyPreyCount > 0)
+	{
+		averagePosition /= nearbyPreyCount;
+		return pursuitForceFactor * GetSeekingForce(averagePosition, predators[id]);
+	}
+
+	return float3(0.0f, 0.0f, 0.0f);
+}
+
 inline float3 GetSumNearbyPositions(RWStructuredBuffer<Boid> boids, float3 position, float nearbyDistance, out uint nearbyCount)
 {
 	uint boidsCount;
@@ -158,18 +174,18 @@ inline float3 GetSumNearbyPositions(RWStructuredBuffer<Boid> boids, float3 posit
 	boids.GetDimensions(boidsCount, stride);
 
 	uint nearbyCounter = 0;
-	float3 averagePosition = float3(0.0f, 0.0f, 0.0f);
+	float3 positionSum = float3(0.0f, 0.0f, 0.0f);
 	for (uint i = 0; i < boidsCount; i++)
 	{
 		float distance = length(boids[i].position - position);
 		if (distance < nearbyDistance)
 		{
-			averagePosition += boids[i].position;
+			positionSum += boids[i].position;
 			nearbyCounter++;
 		}
 	}
 	nearbyCount = nearbyCounter;
-	return averagePosition;
+	return positionSum;
 }
 
 
