@@ -14,6 +14,7 @@ public class BoidController : MonoBehaviour
     public float CohesionForceFactor;
     public float SeparationForceFactor;
     public float FleeForceFactor = 3.0f;
+    public float PursuitForceFactor = 3.0f;
     public float FoodForceFactor = 1.0f;
     public float SpeedForceFactor = 1;
     public float BoundsForceFactor;
@@ -24,6 +25,7 @@ public class BoidController : MonoBehaviour
     public float CohesionDistance = 3.0f;
     public float SeparationDistance = 2.0f;
     public float FleeDistance = 20.0f;
+    public float PursuitDistance = 20.0f;
     public float FoodDistance = 20f;
     public float BoundsDistance = 2.0f;
     public float SpawnRadius;
@@ -143,6 +145,7 @@ public class BoidController : MonoBehaviour
         BoidCalculation.SetFloat("separationForceFactor", SeparationForceFactor);
         BoidCalculation.SetFloat("fleeForceFactor", FleeForceFactor);
         BoidCalculation.SetFloat("foodForceFactor", FoodForceFactor);
+        BoidCalculation.SetFloat("pursuitForceFactor", PursuitForceFactor);
         BoidCalculation.SetFloat("speedForceFactor", SpeedForceFactor);
         BoidCalculation.SetFloat("boundsForceFactor", BoundsForceFactor);
         BoidCalculation.SetFloat("dragCoefficient", DragCoefficient);
@@ -153,6 +156,7 @@ public class BoidController : MonoBehaviour
         BoidCalculation.SetFloat("separationDistance", SeparationDistance);
         BoidCalculation.SetFloat("fleeDistance", FleeDistance);
         BoidCalculation.SetFloat("foodDistance", FoodDistance);
+        BoidCalculation.SetFloat("pursuitDistance", PursuitDistance);
         BoidCalculation.SetFloat("boundsDistance", BoundsDistance);
 
         BoidCalculation.SetFloats("simulationCenter", simulationBounds.center.ToArray());
