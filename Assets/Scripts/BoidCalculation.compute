@@ -52,18 +52,20 @@ float maxSpeed;
 inline void SetForce(uint id, float3 force);
 inline void TimeStep(uint id);
 float3 GetFlockingForces(uint id);
+float3 GetFleeForce(uint id);
 float3 GetFoodForce(uint id);
 float3 GetSpeedForces(uint id);
 float3 GetBoundsForce(uint id);
 float3 GetForceFieldForces(uint id);
 inline float3 GetSteeringForce(float3 desiredVelocity, Boid boid);
 inline float3 GetSeekingForce(float3 desiredPosition, Boid boid);
+inline float3 GetFleeingForce(float3 notDesiredPosition, Boid boid);
 
 [numthreads(1024, 1, 1)]
 void UpdateBoid (uint3 id : SV_DispatchThreadID)
 {
 	float3 linearDrag = dragCoefficient * boids[id.x].velocity;
-	float3 force = GetFlockingForces(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + GetSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag;
+	float3 force = GetFlockingForces(id.x) + GetFleeForce(id.x) + GetFoodForce(id.x) + GetForceFieldForces(id.x) + GetSpeedForces(id.x) + GetBoundsForce(id.x) + linearDrag;
 	SetForce(id.x, force);
 	TimeStep(id.x);
 }
@@ -131,6 +133,29 @@ float3 GetFlockingForces(uint id)
 	//separationForce = separationForceFactor * GetSteeringForce(length(boids[id.x].velocity) * averageFlee, boids[id.x]);
 	
 	return alignmentForce + cohesionForce + separationForce;
+}
+
+float3 GetFleeForce(uint id)
+{
+	uint predatorsCount;
+	uint stride;
+	predators.GetDimensions(predatorsCount, stride);
+
+	float closestDistance = 20.0f;
+	float3 closest = float3(0.0f, 0.0f, 0.0f);
+	for (uint i = 0; i < predatorsCount; i++)
+	{
+		float distance = length(boids[id].position - predators[i].position);
+		if (distance < closestDistance)
+		{
+			closestDistance = distance;
+			closest = predators[i].position;
+		}
+	}
+
+	if (closestDistance < 20.0f)
+		return 3 * GetFleeingForce(closest, boids[id]);
+	return float3(0.0f, 0.0f, 0.0f);
 }
 
 float3 GetFoodForce(uint id)
@@ -212,4 +237,9 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
 {
 	float3 desiredVelocity = maxSpeed * normalize(desiredPosition - boid.position);
 	return GetSteeringForce(desiredVelocity, boid);
+}
+
+inline float3 GetFleeingForce(float3 notDesiredPosition, Boid boid)
+{
+	return -GetSeekingForce(notDesiredPosition, boid);
 }
