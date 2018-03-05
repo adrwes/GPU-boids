@@ -38,6 +38,7 @@ float speedForceFactor;
 float boundsForceFactor;
 float dragCoefficient;
 float forceFieldFallofExponent;
+float pursueOffset;
 
 float alignmentDistance;
 float cohesionDistance;
@@ -279,11 +280,10 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
 
 inline float3 GetPursuingForce(float3 target, float3 tagetVelocity, Boid boid)
 {
-	return GetSeekingForce(target + 1*tagetVelocity, boid);
+	return GetSeekingForce(target + pursueOffset*tagetVelocity, boid);
 }
 
 inline float3 GetFleeingForce(float3 notDesiredPosition, Boid boid)
 {
 	return -GetSeekingForce(notDesiredPosition, boid);
 }
-

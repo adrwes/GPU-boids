@@ -20,6 +20,7 @@ public class BoidController : MonoBehaviour
     public float BoundsForceFactor;
     public float DragCoefficient = -0.05f;
     public float ForceFieldFallofExponent = 1;
+    public float PursueOffset = 1;
 
     public float AlignmentDistance = 3.0f;
     public float CohesionDistance = 3.0f;
@@ -51,41 +52,44 @@ public class BoidController : MonoBehaviour
     const int BoidStride = sizeof(float) * 12; 
     const int ForceFieldStride = sizeof(float) * (3 + 1);
     const int FoodStride = sizeof(float) * 3;
-    const int ThreadGroupSize = 1024;
+    const int BoidsThreadGroupSize = 1024;
+    const int PredatorsThreadGroupSize = 16;
         
     void Start ()
     {
-        if(BoidsCount < ThreadGroupSize || PredatorCount < 16)
-            throw new Exception("Number of boids or predators cant be less than the thread group size");
+        if(BoidsCount < BoidsThreadGroupSize || PredatorCount < 16)
+            throw new Exception("Number of boids or predators cant be less than the thread group sizes");
 
         simulationBounds = GetComponent<BoxCollider>();
 
         updateBoidkernel = BoidCalculation.FindKernel("UpdateBoid");
         updatePredatorKernel = BoidCalculation.FindKernel("UpdatePredator");
-        
-        InitAndBindBoidBuffer();
-        InitAndBindPredatorBuffer();
-        InitAndBindFoodsBuffer();
-        InitAndBindForceFieldsBuffer();
-        InitArgsBuffer1();
-        InitArgsBuffer2();
+
+        boidsBuffer = InitAndBindBoidBuffer();
+        predatorBuffer = InitAndBindPredatorBuffer();
+        foodsBuffer = InitAndBindFoodsBuffer();
+        forceFieldBuffer = InitAndBindForceFieldsBuffer();
+        argsBuffer1 = InitArgsBuffer1();
+        argsBuffer2 = InitArgsBuffer2();
         InitAndBindFloats();
     }
-    
-    void InitAndBindBoidBuffer()
+
+    ComputeBuffer InitAndBindBoidBuffer()
     {
-        boidsBuffer = new ComputeBuffer(BoidsCount, BoidStride);
+        var boidsBuffer = new ComputeBuffer(BoidsCount, BoidStride);
         boidsBuffer.SetData(GetRandomBoids(BoidsCount).ToArray());
         BoidCalculation.SetBuffer(updateBoidkernel, "boids", boidsBuffer);
         BoidCalculation.SetBuffer(updatePredatorKernel, "boids", boidsBuffer);
+        return boidsBuffer;
     }
 
-    void InitAndBindPredatorBuffer()
+    ComputeBuffer InitAndBindPredatorBuffer()
     {
-        predatorBuffer = new ComputeBuffer(PredatorCount, BoidStride);
+        var predatorBuffer = new ComputeBuffer(PredatorCount, BoidStride);
         predatorBuffer.SetData(GetRandomBoids(PredatorCount).ToArray());
         BoidCalculation.SetBuffer(updateBoidkernel, "predators", predatorBuffer);
         BoidCalculation.SetBuffer(updatePredatorKernel, "predators", predatorBuffer);
+        return predatorBuffer;
     }
 
     IEnumerable<Boid> GetRandomBoids(int count)
@@ -98,44 +102,44 @@ public class BoidController : MonoBehaviour
                            Mathf.Clamp(SpawnRadius, 0, simulationBounds.size.ToArray().Max()),
                 velocity = Random.insideUnitSphere * SpawnVelocity,
                 acceleration = Vector3.zero,
-                mass = Random.Range(1f, 2f),
-                type = i < 10u ? 0u : 1u
+                mass = Random.Range(1f, 2f)
             };
         }
     }
 
-    void InitAndBindFoodsBuffer()
+    ComputeBuffer InitAndBindFoodsBuffer()
     {
-        if(foodsBuffer != null)
-            foodsBuffer.Release();
-
         var foods = GameObject.FindGameObjectsWithTag("Food").Select(g => g.transform.position).ToArray();
-        foodsBuffer = new ComputeBuffer(new [] {foods.Length, 1}.Max(), FoodStride);
+        var foodsBuffer = new ComputeBuffer(new [] {foods.Length, 1}.Max(), FoodStride);
         foodsBuffer.SetData(foods);
         BoidCalculation.SetBuffer(updateBoidkernel, "foods", foodsBuffer);
+        return foodsBuffer;
     }
 
-    void InitAndBindForceFieldsBuffer()
+    ComputeBuffer InitAndBindForceFieldsBuffer()
     {
         var forceFields = GameObject.FindGameObjectsWithTag("ForceField").Select(g => new Field { position = g.transform.position, force = g.GetComponent<ForceField>().Force }).ToArray();
-        forceFieldBuffer = new ComputeBuffer(forceFields.Length, ForceFieldStride);
+        var forceFieldBuffer = new ComputeBuffer(forceFields.Length, ForceFieldStride);
         forceFieldBuffer.SetData(forceFields);
         BoidCalculation.SetBuffer(updateBoidkernel, "forceFields", forceFieldBuffer);
         BoidCalculation.SetBuffer(updatePredatorKernel, "forceFields", forceFieldBuffer);
+        return forceFieldBuffer;
     }
 
-    void InitArgsBuffer1()
+    ComputeBuffer InitArgsBuffer1()
     {
         var args = new uint[] { BoidMesh.GetIndexCount(0), (uint)BoidsCount, 0, 0, 0 };
-        argsBuffer1 = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        var argsBuffer1 = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         argsBuffer1.SetData(args);
+        return argsBuffer1;
     }
 
-    void InitArgsBuffer2()
+    ComputeBuffer InitArgsBuffer2()
     {
         var args = new uint[] { BoidMesh.GetIndexCount(0), (uint)PredatorCount, 0, 0, 0 };
-        argsBuffer2 = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        var argsBuffer2 = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         argsBuffer2.SetData(args);
+        return argsBuffer2;
     }
 
     void InitAndBindFloats()
@@ -150,6 +154,7 @@ public class BoidController : MonoBehaviour
         BoidCalculation.SetFloat("boundsForceFactor", BoundsForceFactor);
         BoidCalculation.SetFloat("dragCoefficient", DragCoefficient);
         BoidCalculation.SetFloat("forceFieldFallofExponent", ForceFieldFallofExponent);
+        BoidCalculation.SetFloat("pursueOffset", PursueOffset);
 
         BoidCalculation.SetFloat("alignmentDistance", AlignmentDistance);
         BoidCalculation.SetFloat("cohesionDistance", CohesionDistance);
@@ -170,9 +175,11 @@ public class BoidController : MonoBehaviour
     {
         BoidCalculation.SetFloat("deltaTime", Time.deltaTime);
 
-        InitAndBindFoodsBuffer();
+        if(foodsBuffer != null)
+            foodsBuffer.Release();
+        foodsBuffer = InitAndBindFoodsBuffer();
 
-        int threadGroupsCount = Mathf.CeilToInt((float) BoidsCount / ThreadGroupSize);
+        int threadGroupsCount = Mathf.CeilToInt((float) BoidsCount / BoidsThreadGroupSize);
         BoidCalculation.Dispatch(updateBoidkernel, threadGroupsCount, 1, 1);
         
         BoidMaterial.SetBuffer("boids", boidsBuffer);
@@ -183,7 +190,7 @@ public class BoidController : MonoBehaviour
         Graphics.DrawMeshInstancedIndirect(BoidMesh, 0, BoidMaterial, bounds, argsBuffer1);
 
         
-        threadGroupsCount = Mathf.CeilToInt((float) PredatorCount / 16);
+        threadGroupsCount = Mathf.CeilToInt((float) PredatorCount / PredatorsThreadGroupSize);
         BoidCalculation.Dispatch(updatePredatorKernel, threadGroupsCount, 1, 1);
 
         PredatorMaterial.SetBuffer("boids", predatorBuffer);

@@ -746,7 +746,7 @@ Prefab:
     - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
         type: 2}
       propertyPath: BoundsForceFactor
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 114829304115795960, guid: 103ef0ddb387fdb409924701f5b91d1d,
         type: 2}
