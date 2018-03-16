@@ -259,10 +259,9 @@ float3 GetForceFieldForces(Boid boid)
 	float3 result = float3(0.0f, 0.0f, 0.0f);
 	for (uint i = 0; i < fieldsCount; i++)
 	{
-		float mass = 1;
 		float distance = length(forceFields[i].position - boid.position);
 		if (distance >= 1)
-			result += forceFields[i].force * mass / (pow(distance, forceFieldFallofExponent)) * normalize(forceFields[i].position - boid.position);
+			result += forceFields[i].force * boid.mass / (pow(distance, forceFieldFallofExponent)) * normalize(forceFields[i].position - boid.position);
 	}
 	return result;
 }
