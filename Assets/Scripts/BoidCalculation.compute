@@ -192,7 +192,7 @@ float3 GetPursuitForce(uint id)
 	{
 		averagePosition /= nearbyPreyCount;
 		averageVelocity /= nearbyPreyCount;
-		return pursuitForceFactor * GetPursuingForce(averagePosition, averageVelocity , predators[id]);
+		return pursuitForceFactor * GetPursuingForce(averagePosition, averageVelocity, predators[id]);
 	}
 	return float3(0.0f, 0.0f, 0.0f);
 }
@@ -280,7 +280,8 @@ inline float3 GetSeekingForce(float3 desiredPosition, Boid boid)
 
 inline float3 GetPursuingForce(float3 target, float3 tagetVelocity, Boid boid)
 {
-	return GetSeekingForce(target + pursueOffset*tagetVelocity, boid);
+	float3 direction = normalize(tagetVelocity);
+	return GetSeekingForce(target + pursueOffset*direction, boid);
 }
 
 inline float3 GetFleeingForce(float3 notDesiredPosition, Boid boid)
