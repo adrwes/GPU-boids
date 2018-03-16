@@ -98,7 +98,7 @@ public class BoidController : MonoBehaviour
         {
             yield return new Boid
             {
-                position = simulationBounds.center + Random.insideUnitSphere *
+                position = transform.position + simulationBounds.center + Random.insideUnitSphere *
                            Mathf.Clamp(SpawnRadius, 0, simulationBounds.size.ToArray().Max()),
                 velocity = Random.insideUnitSphere * SpawnVelocity,
                 acceleration = Vector3.zero,
@@ -164,7 +164,7 @@ public class BoidController : MonoBehaviour
         BoidCalculation.SetFloat("pursuitDistance", PursuitDistance);
         BoidCalculation.SetFloat("boundsDistance", BoundsDistance);
 
-        BoidCalculation.SetFloats("simulationCenter", simulationBounds.center.ToArray());
+        BoidCalculation.SetFloats("simulationCenter", (transform.position + simulationBounds.center).ToArray());
         BoidCalculation.SetFloats("simulationSize", simulationBounds.size.ToArray());
 
         BoidCalculation.SetFloat("maxSpeed", MaxSpeed);
